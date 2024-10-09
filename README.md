@@ -1,4 +1,4 @@
-The project is largely based on the source code from https://github.com/MakeMagazinDE/Preisrahmen, but uses the T5 4.7' display from Lilygo (https://www.lilygo.cc/products/t5-4-7-inch-e-paper-v2-3), i.e. a combination of ESP32 and EPD (e-paper display). The instructions for adapting the source code to the Lilygo can be found here: https://github.com/Xinyuan-LilyGO/LilyGo-EPD47.
+The project is largely based on the source code from https://github.com/MakeMagazinDE/Preisrahmen, but uses the T5 4.7" display from Lilygo (https://www.lilygo.cc/products/t5-4-7-inch-e-paper-v2-3), i.e. a combination of ESP32 and EPD (e-paper display). The instructions for adapting the source code to the Lilygo can be found here: https://github.com/Xinyuan-LilyGO/LilyGo-EPD47.
 
 The case I used is from Thingiverse https://www.thingiverse.com/thing:6167178
 
