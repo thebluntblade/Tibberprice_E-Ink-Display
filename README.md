@@ -11,3 +11,6 @@ Advantages:
 Disadvantages:
 - Smaller display.
 - No battery and probably much higher power consumption as there is no hardware optimisation.
+
+How to:
+- Rename Credentials-example.h to Credentials.h and add your SSID, password and tibber api token.
