@@ -2,7 +2,12 @@ The project is largely based on source code from https://github.com/MakeMagazinD
 
 The case I have used is from Thingiverse https://www.thingiverse.com/thing:6167178
 
-Compared to the original device based on the link above this solution has some advanctages (+) and disadvantages (-):
-+ Easier, as you just buy the combined EPD with ESP and most probably cheaper for the same reason.
+Compared to the original device based on the link above this solution has some advanctages and disadvantages.
+
+Advantages:
+- Easier, as you just buy the combined EPD with ESP.
+- Cheaper for the same reason.
+  
+Disadvantages:
 - Smaller display.
 - No battery and most probably a much higher energy consumption as there is no optimisation in this regard.
