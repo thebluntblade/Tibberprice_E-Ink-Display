@@ -1,0 +1,1 @@
+The project is largely based on source code from https://github.com/MakeMagazinDE/Preisrahmen, but uses the T5 4.7’ display from Lilygo (https://www.lilygo.cc/products/t5-4-7-inch-e-paper-v2-3), i.e. a combination of ESP32 and EPD (e-paper display).
