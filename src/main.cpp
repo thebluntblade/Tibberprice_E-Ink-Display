@@ -30,19 +30,17 @@ int minVal = 30000, maxVal = 0, minRounded, maxRounded, spread; // For ePaper di
 GFXfont currentFont;                                            // Variable for the current font and size
 uint16_t graphHeight = 440;                                     // Height of the chart
 double deepSleepTime;                                           // Variable for the duration of the next deep sleep
-bool updateAvailable = true;                                    // TEMP: false nach Testende                                   // Variable to update the EPD only if new prcies are available based on the time
+bool updateReady = true;                                        // TEMP: false nach Testende                                   // Variable to update the EPD only if new prcies are available based on the time
 bool wifiOK = false;
 bool deepSleepOK = false;
-bool deepSleepActive = false;                                   // To disable DeepSleep for easier uploading while working on the code
+bool deepSleepActive = false; // To disable DeepSleep for easier uploading while working on the code
 bool tibberPriceOK = false;
+bool timeOK = false;
 bool debugging = true;
 Preferences preferences; // Create Preferences instance
 u32_t counterBrownOut = 0;
-time_t timeNow;
-time_t timeDay;
-struct tm tmNow;
-struct tm tmDay;
-
+time_t timeNow;  // global variable for current time as Epoch
+struct tm tmNow; // global structure for current time as readable time
 
 void WiFiGotIP(WiFiEvent_t event, WiFiEventInfo_t info)
 {
@@ -175,18 +173,16 @@ void fetchTibberPrices()
 
 void calculateDeepSleepTime()
 {
-    struct tm timeinfo;
-    if (getLocalTime(&timeinfo))
+    // struct tm timeinfo;
+    if (timeOK)
     {
-        // Current time (Epoch) as time_t (seconds since 01.01.1970)
-        time_t nowDeepSleep = time(NULL);
 
         // Calculate the time until the next update of energy prices (13:15 Uhr) with an intermediate step at 12:00 to avoid problems based on inaccurate wakeup times
-        struct tm nextUpdate = timeinfo;
+        struct tm nextUpdate = tmNow;
         nextUpdate.tm_hour = 12;
         nextUpdate.tm_min = 00;
         nextUpdate.tm_sec = 0;
-        if (timeinfo.tm_hour == 12 || (timeinfo.tm_hour == 13 && timeinfo.tm_min < 15))
+        if (tmNow.tm_hour == 12 || (tmNow.tm_hour == 13 && tmNow.tm_min < 15))
         {
             nextUpdate.tm_hour = 13;
             nextUpdate.tm_min = 15;
@@ -194,27 +190,16 @@ void calculateDeepSleepTime()
         }
 
         // If the prices were already updated today, add one day
-        if (timeinfo.tm_hour > 13 || (timeinfo.tm_hour == 13 && timeinfo.tm_min >= 15))
+        if (tmNow.tm_hour > 13 || (tmNow.tm_hour == 13 && tmNow.tm_min >= 15))
         {
             nextUpdate.tm_mday += 1;
-            updateAvailable = true; // updateAvailable will be true if the current time is after 13:15
+            updateReady = true; // updateReady will be true if the current time is after 13:15
         }
 
         // Time in seconds until the next update
         time_t nextUpdateEpoch = mktime(&nextUpdate);
-        deepSleepTime = difftime(nextUpdateEpoch, nowDeepSleep);
+        deepSleepTime = difftime(nextUpdateEpoch, timeNow);
         deepSleepOK = true; // Error handling
-
-        // if (debugging == true)
-        // {
-        //     localtime_r(&now, &timeinfo); // Transfer time to tm with the correct time zone
-        //     int cursor_x = 300;
-        //     int cursor_y = EPD_HEIGHT - 0;
-        //     setFont(OpenSans6);
-        //     strftime(buffer, 128, "Deepsleep: %d.%m. %H:%M ", &timeinfo);
-        //     // writeln((GFXfont *)&currentFont, buffer, &cursor_x, &cursor_y, NULL);
-        //     Serial.print(buffer);
-        // }
     }
     else
     {
@@ -224,6 +209,9 @@ void calculateDeepSleepTime()
 
 void epaperOutput()
 {
+    epd_init();
+    epd_poweron();
+    epd_clear();
     setFont(OpenSans8);
     int cursor_x;
     int cursor_y;
@@ -285,15 +273,15 @@ void epaperOutput()
         writeln((GFXfont *)&currentFont, (char *)String(h).c_str(), &cursor_x, &cursor_y, NULL);
     }
 
-    struct tm tm;
-    time_t now;
-    time(&now);
-    localtime_r(&now, &tm);
-    strftime(buffer, 128, "%a, %d.%m.                                     Stunde                                     ", &tm);
-    now = (now + 86400);
-    localtime_r(&now, &tm);
+    struct tm tmDay;
+    time_t timeDay = time(NULL);
+    // time(&now);
+    localtime_r(&timeDay, &tmDay);
+    strftime(buffer, 128, "%a, %d.%m.                                     Stunde                                     ", &tmDay);
+    timeDay = (timeDay + 86400);
+    localtime_r(&timeDay, &tmDay);
 
-    strftime(buffer + strlen(buffer), 128, "%a, %d.%m", &tm);
+    strftime(buffer + strlen(buffer), 128, "%a, %d.%m", &tmDay);
     cursor_x = 135;
     cursor_y = EPD_HEIGHT - 16;
     writeln((GFXfont *)&currentFont, buffer, &cursor_x, &cursor_y, NULL);
@@ -313,13 +301,13 @@ void epaperOutput()
     // ####### End of mean value lines ####################################
 
     // ####### Error handling #############################################
-    if (wifiOK == false)
-    {
-        cursor_x = 260;
-        cursor_y = 50;
-        setFont(OpenSans26);
-        writeln((GFXfont *)&currentFont, "No Wifi", &cursor_x, &cursor_y, NULL);
-    }
+    // if (wifiOK == false)
+    // {
+    //     cursor_x = 260;
+    //     cursor_y = 50;
+    //     setFont(OpenSans26);
+    //     writeln((GFXfont *)&currentFont, "No Wifi", &cursor_x, &cursor_y, NULL);
+    // }
 
     if (deepSleepOK == false || deepSleepActive == false)
     {
@@ -329,13 +317,13 @@ void epaperOutput()
         writeln((GFXfont *)&currentFont, "No Deepsleep", &cursor_x, &cursor_y, NULL);
     }
 
-    if (tibberPriceOK == false)
-    {
-        cursor_x = 260;
-        cursor_y = 150;
-        setFont(OpenSans26);
-        writeln((GFXfont *)&currentFont, "No Price", &cursor_x, &cursor_y, NULL);
-    }
+    // if (tibberPriceOK == false)
+    // {
+    //     cursor_x = 260;
+    //     cursor_y = 150;
+    //     setFont(OpenSans26);
+    //     writeln((GFXfont *)&currentFont, "No Price", &cursor_x, &cursor_y, NULL);
+    // }
     // ####### End of error handling ######################################
 
     // ####### Debugging #############################################
@@ -355,19 +343,55 @@ void epaperOutput()
     // ####### End of Debugging ######################################
 
     // ####### Last update and version ####################################
-    time(&now);             // Query time again to ensure the correct date
-    localtime_r(&now, &tm); // Transfer time to tm with the correct time zone
+    // time(&now);             // Query time again to ensure the correct date
+    // localtime_r(&now, &tm); // Transfer time to tm with the correct time zone
     cursor_x = 5;
     cursor_y = EPD_HEIGHT - 0;
     setFont(OpenSans6);
-    strftime(buffer, 128, "Update: %d.%m. %H:%M ", &tm);
+    strftime(buffer, 128, "Update: %d.%m. %H:%M ", &tmNow);
     sprintf(buffer + strlen(buffer), VERSION);
     writeln((GFXfont *)&currentFont, buffer, &cursor_x, &cursor_y, NULL);
-    
+
     // ####### End of last update and version #############################
 
     epd_draw_grayscale_image(epd_full_screen(), frameBuffer);
+    epd_poweroff_all();
     Serial.println("ePaper writing finished");
+}
+
+void epaperErrorOutput()
+{
+    int cursor_x;
+    int cursor_y;
+    epd_init();
+    epd_poweron();
+    epd_clear();
+
+    if (wifiOK == false)
+    {
+        cursor_x = 260;
+        cursor_y = 50;
+        setFont(OpenSans26);
+        writeln((GFXfont *)&currentFont, "No Wifi", &cursor_x, &cursor_y, NULL);
+    }
+
+    if (timeOK == false)
+    {
+        cursor_x = 260;
+        cursor_y = 100;
+        setFont(OpenSans26);
+        writeln((GFXfont *)&currentFont, "No Time", &cursor_x, &cursor_y, NULL);
+    }
+
+    if (tibberPriceOK == false)
+    {
+        cursor_x = 260;
+        cursor_y = 150;
+        setFont(OpenSans26);
+        writeln((GFXfont *)&currentFont, "No Price", &cursor_x, &cursor_y, NULL);
+    }
+    epd_draw_grayscale_image(epd_full_screen(), frameBuffer);
+    epd_poweroff_all();
 }
 
 void debug()
@@ -406,12 +430,18 @@ void setup()
     WiFi.onEvent(WiFiGotIP, WiFiEvent_t::ARDUINO_EVENT_WIFI_STA_GOT_IP);
     // ############### End of Connecting to Wifi ########################################################
 
-    // ############### Configuration of the time server ######################################################
+    // ############### Configuration of the time server and get current time ######################################################
     // set notification call-back function
     sntp_set_time_sync_notification_cb(timeAvailable);
     configTzTime(timeZone, ntpServer1);
+    timeNow = time(NULL);          // Current time (Epoch) as time_t (seconds since 01.01.1970)
+    localtime_r(&timeNow, &tmNow); // Transfer time to tm with the correct time zone
+    if (getLocalTime(&tmNow))
+    {
+        timeOK = true;
+    }
 
-    // ############### End of Configuration of the time server ########################################################
+    // ############### End of Configuration of the time server and get current time ########################################################
 
     // ############### Framebuffer Memory Allocation and Initialization ######################################################
     frameBuffer = (uint8_t *)ps_calloc(sizeof(uint8_t), EPD_WIDTH * EPD_HEIGHT / 2);
@@ -425,28 +455,62 @@ void setup()
     // ############### End of Framebuffer Memory Allocation and Initialization ########################################################
 
     // ############### Subroutine calls ######################################################
-  
-    calculateDeepSleepTime();
-    if (debugging == true)
+
+    // calculateDeepSleepTime();
+    // if (debugging == true)
+    // {
+    //     debug();
+    // }
+
+    if (wifiOK == true && timeOK == true)
     {
-        debug();
+        calculateDeepSleepTime();
+
+        if (debugging == true)
+        {
+            debug();
+        }
+
+        if (updateReady == true)
+        {
+            fetchTibberPrices();
+
+            if (tibberPriceOK == true)
+            {
+                // epd_init();
+                // epd_poweron();
+                // epd_clear();
+                calculateEpaperMinMax();
+                epaperOutput();
+                // epd_poweroff_all();
+            }
+            else
+            {
+                deepSleepTime = 600; // Try to reload prices, if they are not available at 13:15 after 10 minutes
+            }
+        }
     }
 
-    if (updateAvailable = true)
+    if (wifiOK == false || timeOK == false || tibberPriceOK == false)
     {
-        epd_init();
-        epd_poweron();
-        epd_clear();
-        fetchTibberPrices();
-        calculateEpaperMinMax();
-        epaperOutput();
-        epd_poweroff_all();
+        epaperErrorOutput();
     }
 
-    if (tibberPriceOK == false) // Try to reload prices, if they are not availablae at 13:15 after 10 minutes
-    {
-        deepSleepTime = 600;
-    }
+    // if (updateReady = true)
+    // {
+    // epd_init();
+    // epd_poweron();
+    // epd_clear();
+    // fetchTibberPrices();
+    // calculateEpaperMinMax();
+    // epaperOutput();
+    // epd_poweroff_all();
+    // }
+
+    // if (tibberPriceOK == false) // Try to reload prices, if they are not availablae at 13:15 after 10 minutes
+    // {
+    //     deepSleepTime = 600;
+    // }
 
     // ############### End of subroutine calls ########################################################
 
@@ -456,8 +520,7 @@ void setup()
         esp_sleep_enable_timer_wakeup(deepSleepTime * 1000000);
         esp_deep_sleep_start();
     }
-    
-    
+
     // ############### End of Deepsleep ########################################################
 }
 
