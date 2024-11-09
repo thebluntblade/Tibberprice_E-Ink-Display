@@ -353,6 +353,8 @@ void setup()
     {
         deepSleepTime = 3600;
     }
+    esp_sleep_enable_timer_wakeup(deepSleepTime * 1000000);
+    esp_deep_sleep_start();
     // ############### End of Deepsleep ########################################################
 }
 
