@@ -317,13 +317,13 @@ void epaperOutput()
         writeln((GFXfont *)&currentFont, "No Deepsleep", &cursor_x, &cursor_y, NULL);
     }
 
-    // if (tibberPriceOK == false)
-    // {
-    //     cursor_x = 260;
-    //     cursor_y = 150;
-    //     setFont(OpenSans26);
-    //     writeln((GFXfont *)&currentFont, "No Price", &cursor_x, &cursor_y, NULL);
-    // }
+    if (tibberPriceOK == false)
+    {
+        cursor_x = 260;
+        cursor_y = 150;
+        setFont(OpenSans26);
+        writeln((GFXfont *)&currentFont, "No Price", &cursor_x, &cursor_y, NULL);
+    }
     // ####### End of error handling ######################################
 
     // ####### Debugging #############################################
@@ -383,13 +383,13 @@ void epaperErrorOutput()
         writeln((GFXfont *)&currentFont, "No Time", &cursor_x, &cursor_y, NULL);
     }
 
-    if (tibberPriceOK == false)
-    {
-        cursor_x = 260;
-        cursor_y = 150;
-        setFont(OpenSans26);
-        writeln((GFXfont *)&currentFont, "No Price", &cursor_x, &cursor_y, NULL);
-    }
+    // if (tibberPriceOK == false)
+    // {
+    //     cursor_x = 260;
+    //     cursor_y = 150;
+    //     setFont(OpenSans26);
+    //     writeln((GFXfont *)&currentFont, "No Price", &cursor_x, &cursor_y, NULL);
+    // }
     epd_draw_grayscale_image(epd_full_screen(), frameBuffer);
     epd_poweroff_all();
 }
@@ -487,11 +487,13 @@ void setup()
             else
             {
                 deepSleepTime = 600; // Try to reload prices, if they are not available at 13:15 after 10 minutes
+                calculateEpaperMinMax();
+                epaperOutput();
             }
         }
     }
 
-    if (wifiOK == false || timeOK == false || tibberPriceOK == false)
+    if (wifiOK == false || timeOK == false)
     {
         epaperErrorOutput();
     }
