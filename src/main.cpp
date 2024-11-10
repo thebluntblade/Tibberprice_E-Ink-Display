@@ -33,7 +33,7 @@ double deepSleepTime;                                           // Variable for 
 bool updateReady = true;                                        // TEMP: false nach Testende                                   // Variable to update the EPD only if new prcies are available based on the time
 bool wifiOK = false;
 bool deepSleepOK = false;
-bool deepSleepActive = false; // To disable DeepSleep for easier uploading while working on the code
+bool deepSleepActive = true; // To disable DeepSleep for easier uploading while working on the code
 bool tibberPriceOK = false;
 bool timeOK = false;
 bool debugging = true;
@@ -178,26 +178,29 @@ void calculateDeepSleepTime()
     {
 
         // Calculate the time until the next update of energy prices (13:15 Uhr) with an intermediate step at 12:00 to avoid problems based on inaccurate wakeup times
-        struct tm nextUpdate = tmNow;
-        nextUpdate.tm_hour = 12;
-        nextUpdate.tm_min = 00;
-        nextUpdate.tm_sec = 0;
+        // struct tm nextUpdate = tmNow;
+        struct tm tmNextUpdate;
+        localtime_r(&timeNow, &tmNextUpdate);
+
+        tmNextUpdate.tm_hour = 12;
+        tmNextUpdate.tm_min = 00;
+        tmNextUpdate.tm_sec = 0;
         if (tmNow.tm_hour == 12 || (tmNow.tm_hour == 13 && tmNow.tm_min < 15))
         {
-            nextUpdate.tm_hour = 13;
-            nextUpdate.tm_min = 15;
-            nextUpdate.tm_sec = 0;
+            tmNextUpdate.tm_hour = 13;
+            tmNextUpdate.tm_min = 15;
+            tmNextUpdate.tm_sec = 0;
         }
 
         // If the prices were already updated today, add one day
         if (tmNow.tm_hour > 13 || (tmNow.tm_hour == 13 && tmNow.tm_min >= 15))
         {
-            nextUpdate.tm_mday += 1;
+            tmNextUpdate.tm_mday += 1;
             updateReady = true; // updateReady will be true if the current time is after 13:15
         }
 
         // Time in seconds until the next update
-        time_t nextUpdateEpoch = mktime(&nextUpdate);
+        time_t nextUpdateEpoch = mktime(&tmNextUpdate);
         deepSleepTime = difftime(nextUpdateEpoch, timeNow);
         deepSleepOK = true; // Error handling
     }
