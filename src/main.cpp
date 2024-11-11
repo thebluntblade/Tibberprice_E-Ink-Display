@@ -41,6 +41,7 @@ Preferences preferences; // Create Preferences instance
 u32_t counterBrownOut = 0;
 time_t timeNow;  // global variable for current time as Epoch
 struct tm tmNow; // global structure for current time as readable time
+struct tm tmNextUpdate; // global structure for next update time as readable time - I used a global structure instead of on ein the sub routine for debugging reasons
 
 void WiFiGotIP(WiFiEvent_t event, WiFiEventInfo_t info)
 {
@@ -179,11 +180,13 @@ void calculateDeepSleepTime()
 
         // Calculate the time until the next update of energy prices (13:15 Uhr) with an intermediate step at 12:00 to avoid problems based on inaccurate wakeup times
         // struct tm nextUpdate = tmNow;
-        struct tm tmNextUpdate;
-        localtime_r(&timeNow, &tmNextUpdate);
+        // struct tm tmNextUpdate;
+        // localtime_r(&timeNow, &tmNextUpdate);
+
+        tmNextUpdate = tmNow;
 
         tmNextUpdate.tm_hour = 12;
-        tmNextUpdate.tm_min = 00;
+        tmNextUpdate.tm_min = 0;
         tmNextUpdate.tm_sec = 0;
         if (tmNow.tm_hour == 12 || (tmNow.tm_hour == 13 && tmNow.tm_min < 15))
         {
@@ -200,9 +203,24 @@ void calculateDeepSleepTime()
         }
 
         // Time in seconds until the next update
+        // time_t nextUpdateEpoch = mktime(&tmNextUpdate);
+        // deepSleepTime = difftime(nextUpdateEpoch, timeNow);
+        // deepSleepOK = true; // Error handling
+
         time_t nextUpdateEpoch = mktime(&tmNextUpdate);
-        deepSleepTime = difftime(nextUpdateEpoch, timeNow);
-        deepSleepOK = true; // Error handling
+        if (nextUpdateEpoch == -1) // In case of an error during the time calculation by mktime -1 is the return value.
+        {
+            Serial.println("Error: mktime() could not calculate the time correctly.");
+            deepSleepTime = 3600; // Fallback
+            deepSleepOK = false;
+        }
+        else
+        {
+            deepSleepTime = difftime(nextUpdateEpoch, timeNow);
+            deepSleepOK = true;
+        }
+
+        
     }
     else
     {
@@ -341,6 +359,9 @@ void epaperOutput()
         writeln((GFXfont *)&currentFont, (char *)String(hoursToNextUpdate).c_str(), &cursor_x, &cursor_y, NULL);
         cursor_x = 400;
         writeln((GFXfont *)&currentFont, (char *)String(counterBrownOut).c_str(), &cursor_x, &cursor_y, NULL);
+        cursor_x = 450;
+        strftime(buffer, 128, "NextUpdate: %d.%m.%y %H:%M ", &tmNextUpdate);
+        writeln((GFXfont *)&currentFont, buffer, &cursor_x, &cursor_y, NULL);
     }
 
     // ####### End of Debugging ######################################
