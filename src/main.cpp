@@ -39,8 +39,10 @@ bool timeOK = false;
 bool debugging = true;
 Preferences preferences; // Create Preferences instance
 u32_t counterBrownOut = 0;
-time_t timeNow;  // global variable for current time as Epoch
-struct tm tmNow; // global structure for current time as readable time
+time_t timeNow; // global variable for current time as Epoch
+time_t timeNow2;
+time_t nextUpdateEpoch;
+struct tm tmNow;        // global structure for current time as readable time
 struct tm tmNextUpdate; // global structure for next update time as readable time - I used a global structure instead of on ein the sub routine for debugging reasons
 
 void WiFiGotIP(WiFiEvent_t event, WiFiEventInfo_t info)
@@ -207,7 +209,8 @@ void calculateDeepSleepTime()
         // deepSleepTime = difftime(nextUpdateEpoch, timeNow);
         // deepSleepOK = true; // Error handling
 
-        time_t nextUpdateEpoch = mktime(&tmNextUpdate);
+        // time_t nextUpdateEpoch = mktime(&tmNextUpdate);
+        nextUpdateEpoch = mktime(&tmNextUpdate);
         if (nextUpdateEpoch == -1) // In case of an error during the time calculation by mktime -1 is the return value.
         {
             Serial.println("Error: mktime() could not calculate the time correctly.");
@@ -216,11 +219,10 @@ void calculateDeepSleepTime()
         }
         else
         {
+            timeNow = time(NULL); 
             deepSleepTime = difftime(nextUpdateEpoch, timeNow);
             deepSleepOK = true;
         }
-
-        
     }
     else
     {
@@ -352,7 +354,7 @@ void epaperOutput()
     {
         double hoursToNextUpdate = deepSleepTime / 3600;
         cursor_x = 260;
-        cursor_y = EPD_HEIGHT - 505;
+        cursor_y = EPD_HEIGHT - 515;
         setFont(OpenSans10);
         writeln((GFXfont *)&currentFont, (char *)String(esp_reset_reason()).c_str(), &cursor_x, &cursor_y, NULL);
         cursor_x = 300;
@@ -362,6 +364,17 @@ void epaperOutput()
         cursor_x = 450;
         strftime(buffer, 128, "NextUpdate: %d.%m.%y %H:%M ", &tmNextUpdate);
         writeln((GFXfont *)&currentFont, buffer, &cursor_x, &cursor_y, NULL);
+        cursor_x = 260;
+        cursor_y = EPD_HEIGHT - 495;
+        setFont(OpenSans8);
+        writeln((GFXfont *)&currentFont, (char *)String(timeNow).c_str(), &cursor_x, &cursor_y, NULL);
+        writeln((GFXfont *)&currentFont, (char *)" timeNow ", &cursor_x, &cursor_y, NULL);
+        writeln((GFXfont *)&currentFont, (char *)String(timeNow2).c_str(), &cursor_x, &cursor_y, NULL);
+        writeln((GFXfont *)&currentFont, (char *)" timeNow2", &cursor_x, &cursor_y, NULL);
+        cursor_x = 260;
+        cursor_y = EPD_HEIGHT - 480;
+        writeln((GFXfont *)&currentFont, (char *)String(nextUpdateEpoch).c_str(), &cursor_x, &cursor_y, NULL);
+        writeln((GFXfont *)&currentFont, (char *)" nextUpdateEpoch", &cursor_x, &cursor_y, NULL);
     }
 
     // ####### End of Debugging ######################################
@@ -372,7 +385,7 @@ void epaperOutput()
     cursor_x = 5;
     cursor_y = EPD_HEIGHT - 0;
     setFont(OpenSans6);
-    strftime(buffer, 128, "Update: %d.%m. %H:%M ", &tmNow);
+    strftime(buffer, 128, "Update: %d.%m.%y %H:%M ", &tmNow);
     sprintf(buffer + strlen(buffer), VERSION);
     writeln((GFXfont *)&currentFont, buffer, &cursor_x, &cursor_y, NULL);
 
@@ -459,6 +472,7 @@ void setup()
     sntp_set_time_sync_notification_cb(timeAvailable);
     configTzTime(timeZone, ntpServer1);
     timeNow = time(NULL);          // Current time (Epoch) as time_t (seconds since 01.01.1970)
+    timeNow2 = time(NULL);
     localtime_r(&timeNow, &tmNow); // Transfer time to tm with the correct time zone
     if (getLocalTime(&tmNow))
     {
