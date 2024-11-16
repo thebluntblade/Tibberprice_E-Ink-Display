@@ -30,11 +30,12 @@ int minVal = 30000, maxVal = 0, minRounded, maxRounded, spread; // For ePaper di
 GFXfont currentFont;                                            // Variable for the current font and size
 uint16_t graphHeight = 440;                                     // Height of the chart
 double deepSleepTime;                                           // Variable for the duration of the next deep sleep
-bool updateReady = false;                                       // TEMP: false nach Testende                                   // Variable to update the EPD only if new prcies are available based on the time
+bool updateReady = false;                                       // Variable to update the EPD only if new prcies are available based on the time
 bool wifiOK = false;
 bool deepSleepOK = false;
 bool deepSleepActive = true; // To disable DeepSleep for easier uploading while working on the code
 bool tibberPriceOK = false;
+bool tibberPriceUpdated = false; // Check if the prices for the next day are available
 bool timeOK = false;
 bool debugging = true;
 Preferences preferences; // Create Preferences instance
@@ -114,6 +115,7 @@ void calculateEpaperMinMax()
     average[0] = 0; // Here the average from 13-24h of the current day and 0-23h of the next day for ePaper display
     average[1] = 0;
     minVal = 30000, maxVal = 0, minRounded, maxRounded, spread; // For ePaper display
+    int sumTomorrow = 0;
 
     for (int hour = 13; hour < 24; hour++)
     { // Determine min, max, and average values for the first day, 13-23h
@@ -123,14 +125,24 @@ void calculateEpaperMinMax()
             maxVal = price[0][hour];
         average[0] = average[0] + price[0][hour];
     }
+
     for (int hour = 0; hour < 24; hour++)
-    { // Determine min, max, and average values for the second day, 0-23h
-        if (price[1][hour] < minVal)
-            minVal = price[1][hour];
-        if (price[1][hour] > maxVal)
-            maxVal = price[1][hour];
-        average[1] = average[1] + price[1][hour];
+    {
+        sumTomorrow = sumTomorrow + price[1][hour];
     }
+    if (sumTomorrow != 0)
+    {
+        for (int hour = 0; hour < 24; hour++)
+        { // Determine min, max, and average values for the second day, 0-23h
+            if (price[1][hour] < minVal)
+                minVal = price[1][hour];
+            if (price[1][hour] > maxVal)
+                maxVal = price[1][hour];
+            average[1] = average[1] + price[1][hour];
+        }
+        tibberPriceUpdated = true;
+    }
+
     average[0] = average[0] / 11;          // Day1 from 13-23h
     average[1] = average[1] / 24;          // Day2 from 0-23h
     minRounded = (minVal / 100 - 2) * 100; // Rounded down to nearest 100 -200
@@ -343,13 +355,13 @@ void epaperOutput()
         writeln((GFXfont *)&currentFont, "No Deepsleep", &cursor_x, &cursor_y, NULL);
     }
 
-    if (tibberPriceOK == false)
-    {
-        cursor_x = 260;
-        cursor_y = 150;
-        setFont(OpenSans26);
-        writeln((GFXfont *)&currentFont, "No Price", &cursor_x, &cursor_y, NULL);
-    }
+    // if (tibberPriceOK == false)
+    // {
+    //     cursor_x = 260;
+    //     cursor_y = 150;
+    //     setFont(OpenSans26);
+    //     writeln((GFXfont *)&currentFont, "No Price", &cursor_x, &cursor_y, NULL);
+    // }
     // ####### End of error handling ######################################
 
     // ####### Debugging #############################################
@@ -423,13 +435,13 @@ void epaperErrorOutput()
         writeln((GFXfont *)&currentFont, "No Time", &cursor_x, &cursor_y, NULL);
     }
 
-    // if (tibberPriceOK == false)
-    // {
-    //     cursor_x = 260;
-    //     cursor_y = 150;
-    //     setFont(OpenSans26);
-    //     writeln((GFXfont *)&currentFont, "No Price", &cursor_x, &cursor_y, NULL);
-    // }
+    if (tibberPriceOK == false)
+    {
+        cursor_x = 260;
+        cursor_y = 150;
+        setFont(OpenSans26);
+        writeln((GFXfont *)&currentFont, "No Price", &cursor_x, &cursor_y, NULL);
+    }
     epd_draw_grayscale_image(epd_full_screen(), frameBuffer);
     epd_poweroff_all();
 }
@@ -515,26 +527,17 @@ void setup()
         if (updateReady == true || esp_reset_reason() == 0 || esp_reset_reason() == 1)
         {
             fetchTibberPrices();
+            calculateEpaperMinMax();
+            epaperOutput();
 
-            if (tibberPriceOK == true)
+            if (tibberPriceUpdated == false && updateReady == true) // sometimes the new prices are delayed, if so this checks for new prices every five minutes
             {
-                // epd_init();
-                // epd_poweron();
-                // epd_clear();
-                calculateEpaperMinMax();
-                epaperOutput();
-                // epd_poweroff_all();
-            }
-            else
-            {
-                deepSleepTime = 600; // Try to reload prices, if they are not available at 13:15 after 10 minutes
-                calculateEpaperMinMax();
-                epaperOutput();
+                deepSleepTime = 600;
             }
         }
     }
 
-    if (wifiOK == false || timeOK == false)
+    if (wifiOK == false || timeOK == false || tibberPriceOK == false)
     {
         epaperErrorOutput();
     }
