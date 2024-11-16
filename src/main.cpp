@@ -16,7 +16,7 @@
 #include "Credentials.h"
 #include <Preferences.h>
 
-const char *VERSION = "Version: b1 241109"; // Ctrl+Shift+I --> Date (Extension: Insert Date String)
+const char *VERSION = "Version: b1 241116"; // Ctrl+Shift+I --> Date (Extension: Insert Date String)
 const char *ntpServer1 = "de.pool.ntp.org";
 const char *timeZone = "CET-1CEST,M3.5.0/03,M10.5.0/03"; // TimeZone rule for Europe/Rome including daylight adjustment rules (optional)
 uint8_t *frameBuffer = NULL;
@@ -30,7 +30,7 @@ int minVal = 30000, maxVal = 0, minRounded, maxRounded, spread; // For ePaper di
 GFXfont currentFont;                                            // Variable for the current font and size
 uint16_t graphHeight = 440;                                     // Height of the chart
 double deepSleepTime;                                           // Variable for the duration of the next deep sleep
-bool updateReady = true;                                        // TEMP: false nach Testende                                   // Variable to update the EPD only if new prcies are available based on the time
+bool updateReady = false;                                       // TEMP: false nach Testende                                   // Variable to update the EPD only if new prcies are available based on the time
 bool wifiOK = false;
 bool deepSleepOK = false;
 bool deepSleepActive = true; // To disable DeepSleep for easier uploading while working on the code
@@ -43,7 +43,7 @@ time_t timeNow; // global variable for current time as Epoch
 time_t timeNow2;
 time_t nextUpdateEpoch;
 struct tm tmNow;        // global structure for current time as readable time
-struct tm tmNextUpdate; // global structure for next update time as readable time - I used a global structure instead of on ein the sub routine for debugging reasons
+struct tm tmNextUpdate; // global structure for next update time as readable time - I used a global structure instead of on in the sub routine for debugging reasons
 
 void WiFiGotIP(WiFiEvent_t event, WiFiEventInfo_t info)
 {
@@ -219,7 +219,10 @@ void calculateDeepSleepTime()
         }
         else
         {
-            timeNow = time(NULL); 
+            if (timeNow < 1731711600) // 1731711600 Unix epox time of today (16.11.2024)
+            {
+                timeNow = time(NULL);
+            }
             deepSleepTime = difftime(nextUpdateEpoch, timeNow);
             deepSleepOK = true;
         }
@@ -471,7 +474,7 @@ void setup()
     // set notification call-back function
     sntp_set_time_sync_notification_cb(timeAvailable);
     configTzTime(timeZone, ntpServer1);
-    timeNow = time(NULL);          // Current time (Epoch) as time_t (seconds since 01.01.1970)
+    timeNow = time(NULL); // Current time (Epoch) as time_t (seconds since 01.01.1970)
     timeNow2 = time(NULL);
     localtime_r(&timeNow, &tmNow); // Transfer time to tm with the correct time zone
     if (getLocalTime(&tmNow))
@@ -509,7 +512,7 @@ void setup()
             debug();
         }
 
-        if (updateReady == true)
+        if (updateReady == true || esp_reset_reason() == 0 || esp_reset_reason() == 1)
         {
             fetchTibberPrices();
 
