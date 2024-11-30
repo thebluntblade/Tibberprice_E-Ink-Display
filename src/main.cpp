@@ -16,7 +16,7 @@
 #include "Credentials.h"
 #include <Preferences.h>
 
-const char *VERSION = "Version: b1 241116"; // Ctrl+Shift+I --> Date (Extension: Insert Date String)
+const char *VERSION = "Version: b1 241130"; // Ctrl+Shift+I --> Date (Extension: Insert Date String)
 const char *ntpServer1 = "de.pool.ntp.org";
 const char *timeZone = "CET-1CEST,M3.5.0/03,M10.5.0/03"; // TimeZone rule for Europe/Rome including daylight adjustment rules (optional)
 uint8_t *frameBuffer = NULL;
