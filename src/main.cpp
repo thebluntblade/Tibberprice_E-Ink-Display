@@ -34,7 +34,7 @@ bool updateReady = false;                                       // Variable to u
 bool wifiOK = false;
 bool deepSleepOK = false;
 bool deepSleepActive = true; // To disable DeepSleep for easier uploading while working on the code
-bool tibberPriceOK = false;
+bool tibberPriceOK = true;
 bool tibberPriceUpdated = false; // Check if the prices for the next day are available
 bool timeOK = false;
 bool debugging = true;
@@ -173,9 +173,12 @@ void fetchTibberPrices()
         Serial.println(response);
         DeserializationError error = deserializeJson(doc, response);
         if (error)
+        {
             Serial.println("\n\n################################# Error parsing JSON response ###########################\n");
+            tibberPriceOK = false;
+        }
+
         extractPricesFromJson();
-        tibberPriceOK = true; // Error handling
     }
     else
     {
