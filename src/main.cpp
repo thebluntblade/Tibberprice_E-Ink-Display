@@ -16,7 +16,7 @@
 #include "Credentials.h"
 #include <Preferences.h>
 
-const char *VERSION = "Version: b1 241130"; // Ctrl+Shift+I --> Date (Extension: Insert Date String)
+const char *VERSION = "Version: b1 241215"; // Ctrl+Shift+I --> Date (Extension: Insert Date String)
 const char *ntpServer1 = "de.pool.ntp.org";
 const char *timeZone = "CET-1CEST,M3.5.0/03,M10.5.0/03"; // TimeZone rule for Europe/Rome including daylight adjustment rules (optional)
 uint8_t *frameBuffer = NULL;
@@ -37,7 +37,7 @@ bool deepSleepActive = true; // To disable DeepSleep for easier uploading while 
 bool tibberPriceOK = true;
 bool tibberPriceUpdated = false; // Check if the prices for the next day are available
 bool timeOK = false;
-bool debugging = true;
+bool debugging = false;
 Preferences preferences; // Create Preferences instance
 u32_t counterBrownOut = 0;
 time_t timeNow; // global variable for current time as Epoch
