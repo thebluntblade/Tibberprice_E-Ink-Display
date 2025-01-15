@@ -15,8 +15,9 @@
 #include <ArduinoJson.h>
 #include "Credentials.h"
 #include <Preferences.h>
+#include "esp_adc_cal.h"
 
-const char *VERSION = "Version: v1 241221"; // Ctrl+Shift+I --> Date (Extension: Insert Date String)
+const char *VERSION = "Version: f_i5 250115"; // Ctrl+Shift+I --> Date (Extension: Insert Date String)
 const char *ntpServer1 = "de.pool.ntp.org";
 const char *timeZone = "CET-1CEST,M3.5.0/03,M10.5.0/03"; // TimeZone rule for Europe/Rome including daylight adjustment rules (optional)
 uint8_t *frameBuffer = NULL;
@@ -45,6 +46,35 @@ time_t timeNow2;
 time_t nextUpdateEpoch;
 struct tm tmNow;        // global structure for current time as readable time
 struct tm tmNextUpdate; // global structure for next update time as readable time - I used a global structure instead of on in the sub routine for debugging reasons
+float voltage;
+uint8_t percentage;
+
+void Battery()
+{
+    percentage = 100;
+    int vref = 1100;
+    esp_adc_cal_characteristics_t adc_chars;
+    esp_adc_cal_value_t val_type = esp_adc_cal_characterize(ADC_UNIT_1, ADC_ATTEN_DB_11, ADC_WIDTH_BIT_12, 1100, &adc_chars);
+    if (val_type == ESP_ADC_CAL_VAL_EFUSE_VREF)
+    {
+        Serial.printf("eFuse Vref:%u mV", adc_chars.vref);
+        vref = adc_chars.vref;
+    }
+    voltage = analogRead(36) / 4096.0 * 6.566 * (vref / 1000.0);
+    if (voltage > 1)
+    { // Only display if there is a valid reading
+        Serial.println("\nVoltage = " + String(voltage));
+        percentage = 2836.9625 * pow(voltage, 4) - 43987.4889 * pow(voltage, 3) + 255233.8134 * pow(voltage, 2) - 656689.7123 * voltage + 632041.7303;
+        if (voltage >= 4.20)
+            percentage = 100;
+        if (voltage <= 3.20)
+            percentage = 0; // orig 3.5
+        // drawRect(x + 25, y - 14, 40, 15, Black);
+        // fillRect(x + 65, y - 10, 4, 7, Black);
+        // fillRect(x + 27, y - 12, 36 * percentage / 100.0, 11, Black);
+        // drawString(x + 85, y - 14, String(percentage) + "% " + String(voltage, 1) + "v", LEFT);
+    }
+}
 
 void WiFiGotIP(WiFiEvent_t event, WiFiEventInfo_t info)
 {
@@ -406,6 +436,10 @@ void epaperOutput()
     strftime(buffer, 128, "Update: %d.%m.%y %H:%M ", &tmNow);
     sprintf(buffer + strlen(buffer), VERSION);
     writeln((GFXfont *)&currentFont, buffer, &cursor_x, &cursor_y, NULL);
+    writeln((GFXfont *)&currentFont, (char *)"Voltage: ", &cursor_x, &cursor_y, NULL);
+    writeln((GFXfont *)&currentFont, (char *)String(voltage).c_str(), &cursor_x, &cursor_y, NULL);
+    writeln((GFXfont *)&currentFont, (char *)"Percentage: ", &cursor_x, &cursor_y, NULL);
+    writeln((GFXfont *)&currentFont, (char *)String(percentage).c_str(), &cursor_x, &cursor_y, NULL);
 
     // ####### End of last update and version #############################
 
@@ -521,6 +555,7 @@ void setup()
     if (wifiOK == true && timeOK == true)
     {
         calculateDeepSleepTime();
+        Battery();
 
         if (debugging == true)
         {
