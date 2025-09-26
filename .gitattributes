@@ -1,0 +1,2 @@
+# This setting is necessary to avoid git misbehavior when using both Windows and Mac
+* text=auto 
