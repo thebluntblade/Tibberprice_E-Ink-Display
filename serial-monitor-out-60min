@@ -1,0 +1,75 @@
+[WiFi]: Got time adjustment from NTP!
+STRING PAYLOAD: {"query": "{viewer { homes { currentSubscription{ priceInfo{ today{ total  } tomorrow { total  }}}}}}"} 
+{"data":{"viewer":{"homes":[{"currentSubscription":{"priceInfo":{"today":[{"total":0.2656},{"total":0.2614},{"total":0.2592},{"total":0.2593},{"total":0.2613},{"total":0.2697},{"total":0.3004},{"total":0.3154},{"total":0.3192},{"total":0.3036},{"total":0.2791},{"total":0.2737},{"total":0.2661},{"total":0.2592},{"total":0.2615},{"total":0.2674},{"total":0.2898},{"total":0.3028},{"total":0.3193},{"total":0.3305},{"total":0.3145},{"total":0.2986},{"total":0.2875},{"total":0.2792}],"tomorrow":[{"total":0.2733},{"total":0.2712},{"total":0.2706},{"total":0.2704},{"total":0.2737},{"total":0.2783},{"total":0.2799},{"total":0.2977},{"total":0.3027},{"total":0.2875},{"total":0.2767},{"total":0.2614},{"total":0.2433},{"total":0.2151},{"total":0.2299},{"total":0.2653},{"total":0.283},{"total":0.3055},{"total":0.3309},{"total":0.349},{"total":0.318},{"total":0.3083},{"total":0.3002},{"total":0.2906}]}}}]}}}
+
+extractPricesFromJson:
+Day=     today, dayIndex= 0, hour= 0, Price= 2656
+Day=     today, dayIndex= 0, hour= 1, Price= 2614
+Day=     today, dayIndex= 0, hour= 2, Price= 2592
+Day=     today, dayIndex= 0, hour= 3, Price= 2593
+Day=     today, dayIndex= 0, hour= 4, Price= 2613
+Day=     today, dayIndex= 0, hour= 5, Price= 2697
+Day=     today, dayIndex= 0, hour= 6, Price= 3004
+Day=     today, dayIndex= 0, hour= 7, Price= 3154
+Day=     today, dayIndex= 0, hour= 8, Price= 3192
+Day=     today, dayIndex= 0, hour= 9, Price= 3036
+Day=     today, dayIndex= 0, hour=10, Price= 2791
+Day=     today, dayIndex= 0, hour=11, Price= 2737
+Day=     today, dayIndex= 0, hour=12, Price= 2661
+Day=     today, dayIndex= 0, hour=13, Price= 2592
+Day=     today, dayIndex= 0, hour=14, Price= 2615
+Day=     today, dayIndex= 0, hour=15, Price= 2674
+Day=     today, dayIndex= 0, hour=16, Price= 2898
+Day=     today, dayIndex= 0, hour=17, Price= 3028
+Day=     today, dayIndex= 0, hour=18, Price= 3193
+Day=     today, dayIndex= 0, hour=19, Price= 3305
+Day=     today, dayIndex= 0, hour=20, Price= 3145
+Day=     today, dayIndex= 0, hour=21, Price= 2986
+Day=     today, dayIndex= 0, hour=22, Price= 2875
+Day=     today, dayIndex= 0, hour=23, Price= 2792
+Day=  tomorrow, dayIndex= 1, hour= 0, Price= 2733
+Day=  tomorrow, dayIndex= 1, hour= 1, Price= 2712
+Day=  tomorrow, dayIndex= 1, hour= 2, Price= 2706
+Day=  tomorrow, dayIndex= 1, hour= 3, Price= 2704
+Day=  tomorrow, dayIndex= 1, hour= 4, Price= 2737
+Day=  tomorrow, dayIndex= 1, hour= 5, Price= 2783
+Day=  tomorrow, dayIndex= 1, hour= 6, Price= 2799
+Day=  tomorrow, dayIndex= 1, hour= 7, Price= 2977
+Day=  tomorrow, dayIndex= 1, hour= 8, Price= 3027
+Day=  tomorrow, dayIndex= 1, hour= 9, Price= 2875
+Day=  tomorrow, dayIndex= 1, hour=10, Price= 2767
+Day=  tomorrow, dayIndex= 1, hour=11, Price= 2614
+Day=  tomorrow, dayIndex= 1, hour=12, Price= 2433
+Day=  tomorrow, dayIndex= 1, hour=13, Price= 2151
+Day=  tomorrow, dayIndex= 1, hour=14, Price= 2299
+Day=  tomorrow, dayIndex= 1, hour=15, Price= 2653
+Day=  tomorrow, dayIndex= 1, hour=16, Price= 2830
+Day=  tomorrow, dayIndex= 1, hour=17, Price= 3055
+Day=  tomorrow, dayIndex= 1, hour=18, Price= 3309
+Day=  tomorrow, dayIndex= 1, hour=19, Price= 3489
+Day=  tomorrow, dayIndex= 1, hour=20, Price= 3180
+Day=  tomorrow, dayIndex= 1, hour=21, Price= 3083
+Day=  tomorrow, dayIndex= 1, hour=22, Price= 3002
+Day=  tomorrow, dayIndex= 1, hour=23, Price= 2906
+
+            Today        ||||             Tomorrow
+hour= 0: 2656 || hour=12: 2661 |||| hour= 0: 2733 || hour=12: 2433 ||
+hour= 1: 2614 || hour=13: 2592 |||| hour= 1: 2712 || hour=13: 2151 ||
+hour= 2: 2592 || hour=14: 2615 |||| hour= 2: 2706 || hour=14: 2299 ||
+hour= 3: 2593 || hour=15: 2674 |||| hour= 3: 2704 || hour=15: 2653 ||
+hour= 4: 2613 || hour=16: 2898 |||| hour= 4: 2737 || hour=16: 2830 ||
+hour= 5: 2697 || hour=17: 3028 |||| hour= 5: 2783 || hour=17: 3055 ||
+hour= 6: 3004 || hour=18: 3193 |||| hour= 6: 2799 || hour=18: 3309 ||
+hour= 7: 3154 || hour=19: 3305 |||| hour= 7: 2977 || hour=19: 3489 ||
+hour= 8: 3192 || hour=20: 3145 |||| hour= 8: 3027 || hour=20: 3180 ||
+hour= 9: 3036 || hour=21: 2986 |||| hour= 9: 2875 || hour=21: 3083 ||
+hour=10: 2791 || hour=22: 2875 |||| hour=10: 2767 || hour=22: 3002 ||
+hour=11: 2737 || hour=23: 2792 |||| hour=11: 2614 || hour=23: 2906 ||
+ Min hour:  2, 2592,        |||| Min hour: 13, 2151, 
+ Max hour: 19, 3305,        |||| Max hour: 19, 3489, 
+Average: 2851         |||| Average: 2826
+
+   <hour: 2, >hour:19, =:2851  ||||   <hour:13, >hour:19, =:2826 
+Average0: 2918, Average1: 2826, Minimum: 2151, Maximum: 3489, minRounded: 1900, maxRounded: 3500, spread: 1600
+Mean value lines: mw0:  199, mw1:  206, Mean price 0: 2851, Mean value 1: 2826, 
+ePaper writing finished

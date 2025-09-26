@@ -16,7 +16,7 @@
 #include "Credentials.h"
 #include <Preferences.h>
 
-const char *VERSION = "Version: v1 241221"; // Ctrl+Shift+I --> Date (Extension: Insert Date String)
+const char *VERSION = "Version: f_i8 250926"; // Ctrl+Shift+I --> Date (Extension: Insert Date String)
 const char *ntpServer1 = "de.pool.ntp.org";
 const char *timeZone = "CET-1CEST,M3.5.0/03,M10.5.0/03"; // TimeZone rule for Europe/Rome including daylight adjustment rules (optional)
 uint8_t *frameBuffer = NULL;
@@ -33,7 +33,7 @@ double deepSleepTime;                                           // Variable for 
 bool updateReady = false;                                       // Variable to update the EPD only if new prcies are available based on the time
 bool wifiOK = false;
 bool deepSleepOK = false;
-bool deepSleepActive = true; // To disable DeepSleep for easier uploading while working on the code
+bool deepSleepActive = false; // To disable DeepSleep for easier uploading while working on the code
 bool tibberPriceOK = true;
 bool tibberPriceUpdated = false; // Check if the prices for the next day are available
 bool timeOK = false;
